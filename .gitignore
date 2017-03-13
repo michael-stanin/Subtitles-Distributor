@@ -45,3 +45,20 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Python compiled files
+*.pyc
+
+# Tests directory. Yet to be included
+tests/
+
+# Build directory. For now it won't be included
+build/
+
+# Qt GUI files and respective converters
+*.ui
+*.qrc
+*.bat
+
+# PyCharm IDE files
+.idea/
