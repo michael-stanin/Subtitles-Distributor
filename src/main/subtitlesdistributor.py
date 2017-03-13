@@ -1,6 +1,7 @@
 import os
-import time
 import shutil
+import subprocess
+import time
 import logging
 from functools import reduce
 from threading import Thread
@@ -45,13 +46,6 @@ def valid_directories(dirs):
     return all(map(is_valid_directory, dirs))
 
 
-def is_empty_directory(d):
-    return not os.listdir(d)
-
-
-def any_empty_directory(dirs):
-    return any(map(is_empty_directory, dirs))
-
 
 def extract(sfile, sdir, mdir):
     return FileExtractor(sfile, sdir, mdir).run()
@@ -94,6 +88,8 @@ class SubtitlesDistributor:
             self.log.error("Extraction failed!")
             self.log.info("Starting copy of %s to %s", subs_file, movie_dir)
             copyfile(subs_file, movie_dir, self.log)
+        query = 'explorer /select,"{}"'.format(os.path.abspath(movie_file))
+        subprocess.Popen(query)
         results.append(rc)
         mq.task_done()
         sq.task_done()
