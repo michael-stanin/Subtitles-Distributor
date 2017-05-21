@@ -29,14 +29,14 @@ class Config:
         self.config[section][key] = value
         self._update()
 
+    def _set_defaults(self):
+        pass
+
     def _init_config_file(self):
         if self.config_file is not None:
-            try:
-                makedirs(path.dirname(self.config_file))
-            except FileExistsError as e:
-                self.log.exception("Folder %s exists.", path.dirname(self.config_file))
-            finally:
-                if not path.exists(self.config_file):
-                    self._update()
-                else:
-                    self.config.read_file(open(self.config_file))
+            dir_name = path.dirname(self.config_file)
+            if not path.exists(dir_name):
+                makedirs(dir_name)
+            if path.exists(self.config_file):
+                self.config.read_file(open(self.config_file))
+            self._set_defaults()

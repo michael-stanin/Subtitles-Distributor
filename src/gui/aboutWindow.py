@@ -14,5 +14,5 @@ class AboutWindow(HelpDialog, Ui_AboutWindow):
             cfg.version, cfg.sub_version
         ))
         self.build_info_lbl.setText("Build #{}, built on {}.".format(
-            cfg.build, strftime("%d %B %Y")
+            cfg.build, cfg.built_time
         ))

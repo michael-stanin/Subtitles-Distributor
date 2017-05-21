@@ -43,22 +43,18 @@ LOGGING = {
         'main.subtitlesdistributor': {
             'handlers': ['file', 'stream'],
             'level': logging_level(),
-            'propagate': False
         },
         'main.fileextractors.fileextractor': {
             'handlers': ['file', 'stream'],
             'level': logging_level(),
-            'propagate': False
         },
         'main.fileeventhandlers.fileeventhandler': {
             'handlers': ['file', 'stream'],
             'level': logging_level(),
-            'propagate': False
         },
         'config.config': {
             'handlers': ['file', 'stream'],
             'level': logging_level(),
-            'propagate': False
         },
     }
 }

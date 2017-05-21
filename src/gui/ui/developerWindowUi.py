@@ -39,7 +39,7 @@ class Ui_DeveloperWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 331, 262))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 331, 274))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.gridLayout = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setContentsMargins(10, 10, 10, 10)
@@ -54,6 +54,8 @@ class Ui_DeveloperWindow(object):
         self.label.setMinimumSize(QtCore.QSize(0, 0))
         self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.label.setWordWrap(True)
+        self.label.setOpenExternalLinks(True)
+        self.label.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse)
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -65,7 +67,7 @@ class Ui_DeveloperWindow(object):
     def retranslateUi(self, DeveloperWindow):
         _translate = QtCore.QCoreApplication.translate
         DeveloperWindow.setWindowTitle(_translate("DeveloperWindow", "Developer"))
-        self.label.setText(_translate("DeveloperWindow", "<html><head/><body><p>I am <span style=\" font-weight:600;\">Michael Stanin</span>.</p><p>I am full time <span style=\" font-weight:600;\">C++ Developer</span> and I\'m strongly intrigued by the power Python provides.</p><p>I tend to watch a ton of movies and shows. This means that most of the time I need to extract subtitles to the movie folders again, and again, and again... </p><p>Then it struck me! <span style=\" font-weight:600;\">Subtitles Distributor </span>- simple application which watches two folders and when it finds new subtitles it extracts them in the new movie folder.</p><p>The application is open source: <span style=\" font-weight:600;\">Subtitles Distributor repository</span></p><p>Please do not hesitate to contact me at <span style=\" font-weight:600;\">michael.stanin@gmail.com</span> if you have any questions or concerns.</p></body></html>"))
+        self.label.setText(_translate("DeveloperWindow", "<html><head/><body><p>I am <span style=\" font-weight:600;\">Michael Stanin</span>.</p><p>I am full time <span style=\" font-weight:600;\">C++ Developer</span> and I\'m strongly intrigued by the power Python provides.</p><p>I tend to watch a ton of movies and shows. This means that most of the time I need to extract subtitles to the movie folders again, and again, and again... </p><p>Then it struck me! <span style=\" font-weight:600;\">Subtitles Distributor </span>- simple application which watches two folders and when it finds new subtitles it extracts them in the new movie folder.</p><p>The application is open source: <a href=\"https://github.com/michael-stanin/Subtitles-Distributor\"><span style=\" text-decoration: underline; color:#0000ff;\">Subtitles Distributor repository</span></a></p><p>You can also visit <a href=\"https://subtitlesdistributor.wordpress.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">the website</span></a>.</p><p>Please do not hesitate to contact me at <span style=\" font-weight:600;\">michael.stanin@gmail.com</span> if you have any questions or concerns.</p></body></html>"))
 
 from . import icons_rc
 

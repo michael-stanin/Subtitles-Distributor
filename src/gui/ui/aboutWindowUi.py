@@ -26,7 +26,11 @@ class Ui_AboutWindow(object):
         AboutWindow.setStyleSheet("QDialog {\n"
 "    background-color: #F0F8FF;\n"
 "}\n"
-"")
+"\n"
+"QScrollArea {\n"
+"    border: 2px solid #8f8f91;\n"
+"    border-radius: 6px;\n"
+"}")
         self.gridLayout = QtWidgets.QGridLayout(AboutWindow)
         self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(5)
@@ -53,21 +57,22 @@ class Ui_AboutWindow(object):
         self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.about_lbl = QtWidgets.QLabel(AboutWindow)
-        self.about_lbl.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.about_lbl.sizePolicy().hasHeightForWidth())
-        self.about_lbl.setSizePolicy(sizePolicy)
-        self.about_lbl.setBaseSize(QtCore.QSize(0, 0))
-        self.about_lbl.setTextFormat(QtCore.Qt.RichText)
-        self.about_lbl.setScaledContents(False)
+        self.aboutArea = QtWidgets.QScrollArea(AboutWindow)
+        self.aboutArea.setStyleSheet("background-color: #F0F8FF;")
+        self.aboutArea.setWidgetResizable(True)
+        self.aboutArea.setObjectName("aboutArea")
+        self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 257, 268))
+        self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents_2)
+        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.about_lbl = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
         self.about_lbl.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.about_lbl.setWordWrap(True)
         self.about_lbl.setObjectName("about_lbl")
-        self.verticalLayout_2.addWidget(self.about_lbl)
-        self.version_info_lbl = QtWidgets.QLabel(AboutWindow)
+        self.gridLayout_2.addWidget(self.about_lbl, 0, 0, 1, 1)
+        self.version_info_lbl = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -82,8 +87,8 @@ class Ui_AboutWindow(object):
         self.version_info_lbl.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft)
         self.version_info_lbl.setWordWrap(True)
         self.version_info_lbl.setObjectName("version_info_lbl")
-        self.verticalLayout_2.addWidget(self.version_info_lbl)
-        self.build_info_lbl = QtWidgets.QLabel(AboutWindow)
+        self.gridLayout_2.addWidget(self.version_info_lbl, 1, 0, 1, 1)
+        self.build_info_lbl = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -95,8 +100,8 @@ class Ui_AboutWindow(object):
         self.build_info_lbl.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.build_info_lbl.setWordWrap(True)
         self.build_info_lbl.setObjectName("build_info_lbl")
-        self.verticalLayout_2.addWidget(self.build_info_lbl)
-        self.rights_info_lbl = QtWidgets.QLabel(AboutWindow)
+        self.gridLayout_2.addWidget(self.build_info_lbl, 2, 0, 1, 1)
+        self.rights_info_lbl = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -107,7 +112,9 @@ class Ui_AboutWindow(object):
         self.rights_info_lbl.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft)
         self.rights_info_lbl.setWordWrap(True)
         self.rights_info_lbl.setObjectName("rights_info_lbl")
-        self.verticalLayout_2.addWidget(self.rights_info_lbl)
+        self.gridLayout_2.addWidget(self.rights_info_lbl, 3, 0, 1, 1)
+        self.aboutArea.setWidget(self.scrollAreaWidgetContents_2)
+        self.verticalLayout_2.addWidget(self.aboutArea)
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
         self.gridLayout.addLayout(self.horizontalLayout_2, 0, 0, 1, 1)
 
@@ -117,7 +124,7 @@ class Ui_AboutWindow(object):
     def retranslateUi(self, AboutWindow):
         _translate = QtCore.QCoreApplication.translate
         AboutWindow.setWindowTitle(_translate("AboutWindow", "About Subtitles Distributor"))
-        self.about_lbl.setText(_translate("AboutWindow", "<html><head/><body><p>Subtitles Distributor should be started <span style=\" font-weight:600; text-decoration: underline;\">before</span> any of the downloading of movies and subtitles has started. Therefore <span style=\" font-weight:600;\">please </span>provide the needed folder locations for <span style=\" font-weight:600;\">new subtitles </span>and <span style=\" font-weight:600;\">movie files </span>and click on <span style=\" font-weight:600;\">Distribute</span>.</p><p>Subtitles Distributor will watch your subtitles and movies folders. When there is <span style=\" font-weight:600;\">new file</span> in any of those folders it expects to find <span style=\" font-weight:600;\">new file</span> in the other folder. Afterwards Subtitles Distributor extracts the subtitles into your new movie folder. </p><p>If it fails to extract the subtitles file it just copies it to the movie folder.</p></body></html>"))
+        self.about_lbl.setText(_translate("AboutWindow", "<html><head/><body><p>Subtitles Distributor should be started <span style=\" font-weight:600; text-decoration: underline;\">before</span> any of the downloading of movies and subtitles has started. Therefore <span style=\" font-weight:600;\">please</span> provide the needed folder locations for <span style=\" font-weight:600;\">new subtitles</span> and<span style=\" font-weight:600;\"> movie files</span> and click on <span style=\" font-weight:600;\">Distribute</span>.</p><p>Subtitles Distributor will watch your subtitles and movies folders. When there is <span style=\" font-weight:600;\">new file </span>in any of those folders it expects to find <span style=\" font-weight:600;\">new file </span>in the other folder. Afterwards Subtitles Distributor extracts the subtitles into your new movie folder. </p><p>If it fails to extract the subtitles file it just copies it to the movie folder.</p></body></html>"))
         self.rights_info_lbl.setText(_translate("AboutWindow", "<html><head/><body><p>Copyright (C) 2017 Subtitles Distributor Ltd. All rights reserved.</p></body></html>"))
 
 from . import icons_rc
