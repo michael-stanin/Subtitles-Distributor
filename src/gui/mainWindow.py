@@ -144,7 +144,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.actionDefault_Subtitles_Folder.setEnabled(False)
 
-        self._auto_distribute()
+        state = self.autoDistributeChkBx.checkState()
+        if state == Qt.Checked and valid_movies and valid_subtitles:
+            self._auto_distribute()
 
     def execute_sd(self):
         self.sd = SubtitlesDistributor(
@@ -170,12 +172,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stopBtn.setEnabled(False)
         self.distributeBtn.setEnabled(True)
         self.stop_event.set()
+        if self.sdThread is not None:
+            self.sdThread.join()
         if hasattr(self, "sd"):
             del self.sd
             self.log.info("Subtitles Distributor object deleted.")
             self.log.info("Watchers finished.")
-        if self.sdThread is not None:
-            self.sdThread.join()
+
+    def exit(self):
+        self.stop()
         # Skip the first-default folders
         self.folder_config.movies_folders = [self.moviesCmbBox.itemText(i) for i in range(1, self.moviesCmbBox.count())]
         self.folder_config.subtitles_folders = [self.subtitlesCmbBox.itemText(i) for i in range(1, self.subtitlesCmbBox.count())]
