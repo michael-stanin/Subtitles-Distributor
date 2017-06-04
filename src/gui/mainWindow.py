@@ -20,6 +20,25 @@ def browse_dialog(title):
         None, title, getenv("SYSTEMDRIVE"), options=QFileDialog.ShowDirsOnly)
 
 
+
+def generate_folders_list(defaultFolder, folderConfig):
+    l = [e for e in folderConfig if not e == defaultFolder]
+    l.insert(0, defaultFolder)
+    return l
+
+def handle_folder(container, comboBox, actionDefaultFolder):
+    valid_folder = is_valid_directory(comboBox.currentText())
+    folder = ""
+    if valid_folder :
+        folder = comboBox.currentText()
+        if folder not in container:
+            container.append(folder)
+            comboBox.addItem(folder)
+        actionDefaultFolder.setEnabled(True)
+    else:
+        actionDefaultFolder.setEnabled(False)
+    return folder
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     
     def __init__(self, *args, **kwargs):
@@ -33,6 +52,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_event = Event()
         self.moviesDir = ""
         self.subtitlesDir = ""
+        self.movies = []
+        self.subs = []
         self.sdThread = None
         #self.sd = None
         self._configure_log()
@@ -54,20 +75,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _configure_combo_boxes(self):
         self.default_movies_folder = self.folder_config.default_movies_folder
-        self.moviesCmbBox.addItem(self.default_movies_folder)
-        self.movies = []
-        for e in self.folder_config.movies_folders.split("|"):
-            self.movies.append(e)
+        movies_split = self.folder_config.movies_folders.split("|")
+        self.movies = generate_folders_list(self.default_movies_folder, movies_split)
         self.moviesCmbBox.addItems(self.movies)
-        self.moviesCmbBox.setCurrentText(self.default_movies_folder)
 
         self.default_subtitles_folder = self.folder_config.default_subtitles_folder
-        self.subtitlesCmbBox.addItem(self.default_subtitles_folder)
-        self.subs = []
-        for e in self.folder_config.subtitles_folders.split("|"):
-            self.subs.append(e)
+        subs_split = self.folder_config.subtitles_folders.split("|")
+        self.subs = generate_folders_list(self.default_subtitles_folder, subs_split)
         self.subtitlesCmbBox.addItems(self.subs)
-        self.subtitlesCmbBox.setCurrentText(self.default_subtitles_folder)
 
     def _configure_log(self):
         config.dictConfig(LOGGING)
@@ -120,33 +135,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def set_default_subtitles_folder(self):
         self.folder_config.default_subtitles_folder = self.subtitlesCmbBox.currentText()
 
+
     def on_text_changed(self):
-        valid_movies = is_valid_directory(self.moviesCmbBox.currentText())
-        valid_subtitles = is_valid_directory(self.subtitlesCmbBox.currentText())
-        if valid_movies and valid_subtitles:
-            self.moviesDir = self.moviesCmbBox.currentText()
-            self.subtitlesDir = self.subtitlesCmbBox.currentText()
+        self.moviesDir = handle_folder(self.movies, self.moviesCmbBox, self.actionDefault_Movies_Folder)
+        self.subtitlesDir = handle_folder(self.subs, self.subtitlesCmbBox, self.actionDefault_Subtitles_Folder)
+
+        if self.moviesDir and self.subtitlesDir:
+            state = self.autoDistributeChkBx.checkState()
+            if state == Qt.Checked:
+                self._auto_distribute()
             self.distributeBtn.setEnabled(True)
             self.statusbar.showMessage("Ready to watch and distribute!", 4000)
         else:
             self.distributeBtn.setEnabled(False)
 
-        if valid_movies:
-            if hasattr(self, "movies") and self.moviesCmbBox.currentText() not in self.movies:
-                self.movies.append(self.moviesCmbBox.currentText())
-            self.actionDefault_Movies_Folder.setEnabled(True)
-        else:
-            self.actionDefault_Movies_Folder.setEnabled(False)
-        if valid_subtitles:
-            if hasattr(self, "subs") and self.subtitlesCmbBox.currentText() not in self.subs:
-                self.subs.append(self.subtitlesCmbBox.currentText())
-            self.actionDefault_Subtitles_Folder.setEnabled(True)
-        else:
-            self.actionDefault_Subtitles_Folder.setEnabled(False)
-
-        state = self.autoDistributeChkBx.checkState()
-        if state == Qt.Checked and valid_movies and valid_subtitles:
-            self._auto_distribute()
 
     def execute_sd(self):
         self.sd = SubtitlesDistributor(
@@ -187,15 +189,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.folder_config.auto_start_distributing = repr(self.autoDistributeChkBx.isChecked())
 
     def subtitles_folder_browse(self):
-        self.subtitlesDir = path.abspath(browse_dialog("Select a subtitles folder to watch:"))
-        self.subtitlesCmbBox.setCurrentText(self.subtitlesDir)
-        if self.subtitlesDir not in self.movies and not self.subtitlesDir == self.default_subtitles_folder:
-            self.subs.append(self.subtitlesDir)
-            self.subtitlesCmbBox.addItem(self.subtitlesDir)
+        self.subtitlesDir = self.folder_browse(self.subtitlesCmbBox, "Select a subtitles folder to watch:")
 
     def movie_folder_browse(self):
-        self.moviesDir = path.abspath(browse_dialog("Select a movies folder to watch:"))
-        self.moviesCmbBox.setCurrentText(self.moviesDir)
-        if self.moviesDir not in self.movies and not self.moviesDir == self.default_movies_folder:
-            self.movies.append(self.moviesDir)
-            self.moviesCmbBox.addItem(self.moviesDir)
+        self.moviesDir = self.folder_browse(self.moviesCmbBox, "Select a movies folder to watch:")
+
+    def folder_browse(self, comboBox, title):
+        folder = path.abspath(browse_dialog(title))
+        comboBox.setCurrentText(folder)
+        return folder
