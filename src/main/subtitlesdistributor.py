@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 import time
 import logging
@@ -10,6 +9,8 @@ from .setqueue import SetQueue
 from main.fileextractors.fileextractor import FileExtractor
 from main.fileeventhandlers.moviefileeventhandler import MovieEventHandler
 from main.fileeventhandlers.subtitlesfileeventhandler import SubtitlesEventHandler
+from main.utilities.fileutils import valid_directories
+from main.utilities.subtitlesadjuster import CopyAdjuster
 
 
 BUF_SIZE = 10
@@ -24,31 +25,14 @@ def clear_queues():
         sq.queue.clear()
 
 
-def copyfile(src, dst, log):
-    try:
-        log.info("Start copying %s to %s.",src, dst)
-        shutil.copyfile(src, dst)
-    except shutil.Error as e:  # Directories are the same
-        log.exception("File not copied. Error: %s", e)
-    except IOError as e:
-        log.exception("File not found or location is not writable. Error: %s", e)
-    except:
-        pass
-    finally:
-        log.info("Done copying %s to %s.", src, dst)
+def extract(sfile, mfile):
+    fe = FileExtractor(sfile, mfile)
+    return fe.run()
 
 
-def is_valid_directory(d):
-    return os.path.exists(d) and os.path.isdir(d)
-
-
-def valid_directories(dirs):
-    return all(map(is_valid_directory, dirs))
-
-
-
-def extract(sfile, sdir, mdir):
-    return FileExtractor(sfile, sdir, mdir).run()
+def copy(s_base_dir, sfile, mfile):
+    ca = CopyAdjuster(s_base_dir, sfile, mfile)
+    return ca.adjust()
 
 
 class SubtitlesDistributor:
@@ -81,15 +65,17 @@ class SubtitlesDistributor:
         subs_file, subs_dir = sq.get()
 
         self.log.info("Trying to extract...")
-        rc = extract(subs_file, subs_dir, movie_dir)
+        rc = extract(subs_file, movie_file)
         if rc:
             self.log.info("Extraction succeeded.")
         else:
             self.log.error("Extraction failed!")
-            self.log.info("Starting copy of %s to %s", subs_file, movie_dir)
-            copyfile(subs_file, movie_dir, self.log)
-        query = 'explorer /select,"{}"'.format(os.path.abspath(movie_file))
-        subprocess.Popen(query)
+            rc = copy(self.sDir, subs_file, movie_file)
+
+        if rc:
+            query = 'explorer /select,"{}"'.format(os.path.abspath(movie_file))
+            subprocess.Popen(query)
+
         results.append(rc)
         mq.task_done()
         sq.task_done()

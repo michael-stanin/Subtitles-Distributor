@@ -10,7 +10,8 @@ from .aboutWindow import AboutWindow
 from .limitationsWindow import LimitationsWindow
 from .developerWindow import DeveloperWindow
 from log.logconf import LOGGING
-from main.subtitlesdistributor import SubtitlesDistributor, is_valid_directory
+from main.subtitlesdistributor import SubtitlesDistributor
+from main.utilities.fileutils import is_valid_directory
 
 
 
