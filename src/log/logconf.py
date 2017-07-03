@@ -1,11 +1,12 @@
 import sys
 import logging
-from os import path, getenv
+from os import path, getenv, makedirs
 
 
 APP_DATA = getenv("APPDATA")
 LOG_FILE = path.join(APP_DATA, "Subtitles Distributor/subtitles_distributor.log")
-
+makedirs(path.dirname(LOG_FILE), exist_ok=True)
+with open(LOG_FILE, 'a'): pass
 
 def logging_level():
     if getattr(sys, 'frozen', False):
@@ -49,6 +50,10 @@ LOGGING = {
             'level': logging_level(),
         },
         'main.fileeventhandlers.fileeventhandler': {
+            'handlers': ['file', 'stream'],
+            'level': logging_level(),
+        },
+        'main.utilities.subtitlesadjuster': {
             'handlers': ['file', 'stream'],
             'level': logging_level(),
         },
