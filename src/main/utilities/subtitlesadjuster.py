@@ -75,6 +75,7 @@ class CopyAdjuster(SubtitlesAdjuster):
 
     def _distributed_paths(self):
         if dir_path(self.sn) == self.sDir:
+            self.log.info("Additional adjusting of file locations for {} is not required.".format(self.sn))
             return [self.sn]
         t = path.relpath(self.sn, start=self.sDir)
         basedir = t.split(path.sep)[0]

@@ -21,6 +21,7 @@ class FileEventHandler(PatternMatchingEventHandler):
         event.src_path
             path/to/observed/file
         """
+        self.log.debug("Event is of type %s", event.event_type)
         self.log.info("Found new file in producer - %s", self.path)
         self.q.put((self.path, dirname(self.path)))
 

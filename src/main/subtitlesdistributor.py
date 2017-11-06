@@ -1,9 +1,7 @@
 import os
 import subprocess
-import time
 import logging
 from functools import reduce
-from threading import Thread
 from watchdog.observers import Observer
 from .setqueue import SetQueue
 from main.fileextractors.fileextractor import FileExtractor
@@ -35,6 +33,19 @@ def copy(s_base_dir, sfile, mfile):
     return ca.adjust()
 
 
+def folder_observer(handler, d):
+    observer = Observer()
+    observer.setDaemon(True)
+    observer.schedule(handler, d, recursive=True)
+    return observer
+
+
+def finish_folder_observer(observer):
+    if observer.isAlive():
+        observer.stop()
+        observer.join()
+
+
 class SubtitlesDistributor:
     def __init__(self, argv):
         self.stop_event = argv[0]
@@ -42,19 +53,27 @@ class SubtitlesDistributor:
         self.sDir = argv[2]
         self.log = logging.getLogger(__name__)
 
-    def producing_thread(self, handler, d):
-        observer = Observer()
-        observer.setDaemon(True)
-        observer.schedule(handler, d, recursive=True)
-        observer.start()
+    def watch_and_distribute(self, results):
+        movs_observer = folder_observer(MovieEventHandler(mq), self.mDir)
+        subs_observer = folder_observer(SubtitlesEventHandler(sq), self.sDir)
+
+        movs_observer.name = "Movie Watcher Thread"
+        subs_observer.name = "Subtitles Watcher Thread"
+
+        movs_observer.start()
+        subs_observer.start()
 
         try:
             while not self.stop_event.is_set():
-                time.sleep(1)
+                if not mq.empty() and not sq.empty():
+                    self._consume(results)
         finally:
             self.log.info("Stop event is set.")
-            observer.stop()
-            observer.join()
+            self.log.debug("Joining movies watcher")
+            finish_folder_observer(movs_observer)
+            self.log.debug("Joining Subtitles watcher")
+            finish_folder_observer(subs_observer)
+            self.log.debug("Joining finished.")
 
     def _consume(self, results):
         self.log.info("Consuming movies and subtitles.")
@@ -70,7 +89,10 @@ class SubtitlesDistributor:
             self.log.info("Extraction succeeded.")
         else:
             self.log.error("Extraction failed!")
+            self.log.info("Trying to copy...")
             rc = copy(self.sDir, subs_file, movie_file)
+            copy_status_message = "Copy succeeded." if rc else "Copy failed!"
+            self.log.info(copy_status_message)
 
         if rc:
             query = 'explorer /select,"{}"'.format(os.path.abspath(movie_file))
@@ -80,37 +102,12 @@ class SubtitlesDistributor:
         mq.task_done()
         sq.task_done()
 
-    def consuming_thread(self, results):
-        while not self.stop_event.is_set():
-            if not mq.empty() and not sq.empty():
-                self._consume(results)
-        return
-
-    def _start_worker_threads(self, mq, sq, results):
-        m_t = Thread(name="Movies Thread",
-                     target=self.producing_thread,
-                     args=(MovieEventHandler(mq), self.mDir))
-        s_t = Thread(name="Subtitles Thread",
-                     target=self.producing_thread,
-                     args=(SubtitlesEventHandler(sq), self.sDir))
-        c_t = Thread(name="Consumer Thread",
-                     target=self.consuming_thread,
-                     args=(results,))
-        for t in [m_t, s_t, c_t]:
-            t.daemon = True
-        for t in [m_t, s_t, c_t]:
-            t.start()
-        return m_t, s_t, c_t
-
     def _start(self, results):
         self.log.info("Movies directory - %s", self.mDir)
         self.log.info("Subtitles directory - %s", self.sDir)
         if valid_directories([self.mDir, self.sDir]):
-            while not self.stop_event.is_set():
-                m_t, s_t, c_t = self._start_worker_threads(mq, sq, results)
-                for t in [m_t, s_t, c_t]:
-                    t.join()
-                self.log.info("Worker threads finished.")
+            self.log.info("%s and %s are valid.", self.mDir, self.sDir)
+            self.watch_and_distribute(results)
 
     def start(self):
         self.log.info("Starting Subtitles Distributor.")
