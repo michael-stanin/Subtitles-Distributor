@@ -19,7 +19,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standardformat': {
-            'format': '[{asctime}] [{levelname:8}] [{name}] [{funcName}():{lineno}]: [{message}]',
+            'format': '[{asctime}] [{levelname:8}] [{name}] [{threadName}] [{funcName}():{lineno}]: [{message}]',
             'style': '{'
         },
     },
