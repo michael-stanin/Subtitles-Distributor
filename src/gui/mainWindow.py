@@ -14,40 +14,49 @@ from main.subtitlesdistributor import SubtitlesDistributor
 from main.utilities.fileutils import is_valid_directory
 
 
-
-
 def browse_dialog(title):
     return QFileDialog.getExistingDirectory(
         None, title, getenv("SYSTEMDRIVE"), options=QFileDialog.ShowDirsOnly)
 
 
-
-def generate_folders_list(defaultFolder, folderConfig):
-    l = [e for e in folderConfig if not e == defaultFolder]
-    l.insert(0, defaultFolder)
+def generate_folders_list(default_folder, folder_config):
+    l = [e for e in folder_config if not e == default_folder]
+    l.insert(0, default_folder)
     return l
 
-def handle_folder(container, comboBox, actionDefaultFolder):
-    valid_folder = is_valid_directory(comboBox.currentText())
+
+def handle_folder(container, combo_box, action_default_folder):
+    valid_folder = is_valid_directory(combo_box.currentText())
     folder = ""
-    if valid_folder :
-        folder = comboBox.currentText()
+    if valid_folder:
+        folder = combo_box.currentText()
         if folder not in container:
             container.append(folder)
-            comboBox.addItem(folder)
-        actionDefaultFolder.setEnabled(True)
+            combo_box.addItem(folder)
+        action_default_folder.setEnabled(True)
     else:
-        actionDefaultFolder.setEnabled(False)
+        action_default_folder.setEnabled(False)
     return folder
+
+
+def folder_browse(combo_box, title):
+    folder = path.abspath(browse_dialog(title))
+    combo_box.setCurrentText(folder)
+    return folder
+
+
+def combo_box_items(combo_box):
+    return [combo_box.itemText(i) for i in range(1, combo_box.count())]
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.connect()
         self.show()
         self._config()
+        self.connect()
 
     def _config(self):
         self.stop_event = Event()
@@ -56,7 +65,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.movies = []
         self.subs = []
         self.sdThread = None
-        #self.sd = None
         self._configure_log()
         self.folder_config = FoldersConfig()
         self._configure_combo_boxes()
@@ -79,11 +87,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         movies_split = self.folder_config.movies_folders.split("|")
         self.movies = generate_folders_list(self.default_movies_folder, movies_split)
         self.moviesCmbBox.addItems(self.movies)
+        self.moviesDir = self.default_movies_folder
 
         self.default_subtitles_folder = self.folder_config.default_subtitles_folder
         subs_split = self.folder_config.subtitles_folders.split("|")
         self.subs = generate_folders_list(self.default_subtitles_folder, subs_split)
         self.subtitlesCmbBox.addItems(self.subs)
+        self.subtitlesDir = self.default_subtitles_folder
 
     def _configure_log(self):
         config.dictConfig(LOGGING)
@@ -106,7 +116,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionLimitations_2.triggered.connect(self.show_limitations)
         self.actionDeveloper_2.triggered.connect(self.show_developer)
 
-        self.statusbar.showMessage("Fill folders to watch.", 4000)
+        if not self.moviesDir or not self.subtitlesDir:
+            self.statusbar.showMessage("Fill folders to watch.", 4000)
 
     def on_auto_distribute_changed(self):
         state = self.autoDistributeChkBx.checkState()
@@ -136,20 +147,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def set_default_subtitles_folder(self):
         self.folder_config.default_subtitles_folder = self.subtitlesCmbBox.currentText()
 
-
     def on_text_changed(self):
         self.moviesDir = handle_folder(self.movies, self.moviesCmbBox, self.actionDefault_Movies_Folder)
         self.subtitlesDir = handle_folder(self.subs, self.subtitlesCmbBox, self.actionDefault_Subtitles_Folder)
 
         if self.moviesDir and self.subtitlesDir:
+            if self.sdThread is not None and self.sdThread.isAlive():
+                self.stop()
+            self.distributeBtn.setEnabled(True)
             state = self.autoDistributeChkBx.checkState()
             if state == Qt.Checked:
                 self._auto_distribute()
-            self.distributeBtn.setEnabled(True)
             self.statusbar.showMessage("Ready to watch and distribute!", 4000)
         else:
             self.distributeBtn.setEnabled(False)
-
 
     def execute_sd(self):
         self.sd = SubtitlesDistributor(
@@ -163,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage("Started watching and distributing!", 4000)
 
         self.stop_event.clear()
-        self.sdThread = Thread(target=self.execute_sd, args=())
+        self.sdThread = Thread(name="Subtitles Distributor Thread", target=self.execute_sd, args=())
         try:
             self.sdThread.start()
             self.log.info("Watchers started.")
@@ -172,6 +183,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def stop(self):
         self.statusbar.showMessage("Stopping watching and distributing!", 4000)
+        self.log.info("Stopping watching and distributing!")
         self.stopBtn.setEnabled(False)
         self.distributeBtn.setEnabled(True)
         self.stop_event.set()
@@ -185,8 +197,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def exit(self):
         self.stop()
         # Skip the first-default folders
-        self.folder_config.movies_folders = [self.moviesCmbBox.itemText(i) for i in range(1, self.moviesCmbBox.count())]
-        self.folder_config.subtitles_folders = [self.subtitlesCmbBox.itemText(i) for i in range(1, self.subtitlesCmbBox.count())]
+        self.folder_config.movies_folders = combo_box_items(self.moviesCmbBox)
+        self.folder_config.subtitles_folders = combo_box_items(self.subtitlesCmbBox)
         self.folder_config.auto_start_distributing = repr(self.autoDistributeChkBx.isChecked())
 
     def subtitles_folder_browse(self):
@@ -194,8 +206,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def movie_folder_browse(self):
         self.moviesDir = self.folder_browse(self.moviesCmbBox, "Select a movies folder to watch:")
-
-    def folder_browse(self, comboBox, title):
-        folder = path.abspath(browse_dialog(title))
-        comboBox.setCurrentText(folder)
-        return folder
