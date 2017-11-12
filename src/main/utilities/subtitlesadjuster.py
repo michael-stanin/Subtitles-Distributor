@@ -6,6 +6,11 @@ from main.utilities.fileutils import extract_archive_file_paths,\
     extract_file_paths, file_name, copyfile, dir_path, file_extension
 
 
+def is_subtitles_file(name):
+    ext = file_extension(name)
+    return ext == ".srt" or ext == ".sub"
+
+
 def _needs_subs_file_name_adjustment(m_name, s_names):
     return not any(map(lambda x: x == m_name, s_names))
 
@@ -31,6 +36,7 @@ class SubtitlesAdjuster:
 
     def adjust(self):
         distributed_paths = self._distributed_paths()
+        distributed_paths = list(filter(is_subtitles_file, distributed_paths))
         self._put_files_under_movie_dir(distributed_paths)
         self._adjust_one_subs_file_name(distributed_paths)
         return True
