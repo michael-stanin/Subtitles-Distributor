@@ -202,7 +202,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.folder_config.auto_start_distributing = repr(self.autoDistributeChkBx.isChecked())
 
     def subtitles_folder_browse(self):
-        self.subtitlesDir = self.folder_browse(self.subtitlesCmbBox, "Select a subtitles folder to watch:")
+        self.subtitlesDir = folder_browse(self.subtitlesCmbBox, "Select a subtitles folder to watch:")
 
     def movie_folder_browse(self):
-        self.moviesDir = self.folder_browse(self.moviesCmbBox, "Select a movies folder to watch:")
+        self.moviesDir = folder_browse(self.moviesCmbBox, "Select a movies folder to watch:")
